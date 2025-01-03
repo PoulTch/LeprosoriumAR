@@ -7,47 +7,20 @@ require 'sinatra/activerecord'
 set :database, {adapter: "sqlite3", database: "leprosorium.db"}
 
 class Post < ActiveRecord::Base
+		validates :author, presence: true
+		validates :content, presence: true
 end
+		
 
-def init_db
-	@db = SQLite3::Database.new 'leprosorium.db'
-	@db.results_as_hash = true
+before do 
+	@p = Post.new
 end
-
-# before вызывается каждый раз при перезагрузке 
-# любой страницы
-
-before do
-	# инициализация БД
-	init_db
-end
-
-# configure вызывается каждый раз при конфигурации приложения:
-# когда изменился код программы и перезагрузилась страница
-
-configure do
-	init_db
-	@db.execute 'CREATE TABLE IF NOT EXISTS Posts 
-	(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    created_date DATA,
-    content TEXT,
-    author TEXT
-	)'
-
-		@db.execute 'CREATE TABLE IF NOT EXISTS Comments 
-	(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    created_date DATA,
-    content TEXT,
-    post_id INTEGER
-	)'
-end	
+	
 	
 get '/' do
 	# выбираем список постов из БД
 
-	@results = @db.execute 'select * from Posts order by id desc'
+		@posts = Post.order('created_at DESC')
 
 	erb :index			
 end
@@ -56,47 +29,29 @@ end
 # (браузер) получает страницу с сервера
 
 get '/new' do
-  erb :new
+		@p = Post.new
+	  erb :new
 end
 
 # обработчик post-запроса /new
 # (браузер отправляет данные на сервер)
 
 post '/new' do
-  # получает переменную из post-запроса
-  content = params[:content]
-  author = params[:author]
-
-  hh = {:author => 'Type your name', 
-  			:content => 'Type post text',                              	                                  
-				}                                                
-                                                                 
-	@error = hh.select {|key,_| params[key] == ""}.values.join(", ") 
-                                                                 
-	if @error != ''                                                  
-		return erb :new                                        
-	end
-                                                              
-
-
+                                                             
   # сохранение данных в БД
 
-  @db.execute 'insert into Posts 
-  (
-  content, 
-  created_date, 
-  author
-  ) 
-  values 
-  (
-  ?, 
-  datetime(), 
-  ?)', [content, author]
-
-  # перенаправляем на главную страницу
-
-  redirect to '/'  
+	@p = Post.new params[:post]
+	if @p.save
+	      else
+      	@error = @p.errors.full_messages.first
+      erb :new
+  end
+	                                                                                            
+  erb :new
 end
+  
+
+    
 
 
 
