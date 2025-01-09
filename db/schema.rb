@@ -10,10 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_01_02_132501) do
-# Could not dump table "Comments" because of following StandardError
-#   Unknown type 'DATA' for column 'created_date'
-
+ActiveRecord::Schema[7.2].define(version: 2025_01_06_120109) do
+  create_table "comments", force: :cascade do |t|
+    t.text "content"
+    t.integer "post_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "posts", force: :cascade do |t|
     t.text "author"
